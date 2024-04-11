@@ -1,0 +1,15 @@
+Point: x = 1, y = 3. And the value is 4.
+Point: x = 1, y = 4. And the value is 5.
+Point: x = 1, y = 5. And the value is 4.
+Point: x = 2, y = 9. And the value is 2.
+Point: x = 4, y = 4. And the value is 6.
+Point: x = 6, y = 0. And the value is 6.
+Point: x = 7, y = 3. And the value is 5.
+3
+cba
+c
+a
+1
+4 1
+2 1
+9 3
