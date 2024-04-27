@@ -2,132 +2,71 @@
 #include<stdlib.h>
 #include<stdbool.h>
 
-struct Node{
+typedef struct Node{
     int key;
     struct Node *left;
     struct Node *right;
-};
+} Node;
 
-struct Node **queue;
-int head, tail, cap, size;
-
-void initialize(int n, int i){
-    head = 0;
-    tail = -1;
-    if(i == 1 && queue != NULL){
-        free(queue);
-    }
-    queue = (struct Node **)malloc(n * sizeof(struct Node));
-    cap = n;
-    size = 0;
+Node *create(int x){
+    Node *new = (Node *)malloc(sizeof(Node));
+    new -> key = x;
+    new -> left = NULL;
+    new -> right = NULL;
 }
 
-struct Node *createNode(int n){
-    struct Node *node = (struct Node *)malloc(sizeof(struct Node));
-    node -> left = NULL;
-    node -> right = NULL;
-    node -> key = n;
-    return node;
-}
+Node *construct(int *arr, int n){
 
-// insert at rear and dequeue at front
+    Node *queue[n + 1];
+    int front = 0, rear = -1;
 
-void push(struct Node *n){
-    if(size < cap){
-        tail = (tail + 1) % cap;
-        queue[tail] = n;
-        size++;
-    }
-}
-
-void pop(){
-    if(size > 0){
-        head = (head + 1) % cap;
-        size--;
-    }
-}
-
-bool empty(){
-    return size == 0;
-}
-
-struct Node *front(){
-    if(!empty())
-        return queue[head];
-}
-
-int getSize(){
-    return size;
-}
-
-struct Node *tree_creation(int *arr, int n){
-
-    initialize(n, 0);
-    struct Node *node = createNode(arr[0]);
-    push(node);
-    struct Node *root = node;
+    Node *root = create(arr[0]);
+    queue[++rear] = root;
 
     int i = 1;
-    while(!empty() && i < n - 1){
-        int count = getSize();
-        for(int j = 0; j < size; j++){
-            struct Node *curr = front();
-            pop();
+    while((rear - front + 1 > 0) && i < n){ // size()
 
-            if(i < n && arr[i] != -1){
-                struct Node *node = createNode(arr[i]);
-                curr -> left = node;
-                push(node);
-            } else {
-                curr -> left = NULL;
-            }
-            i++;
+        Node *node = queue[front];
+        front++;
+        if(i < n && arr[i] != -1){ // For left child
+            Node *left = create(arr[i]);
+            node -> left = left;
+            queue[++rear] = left;
+        } else {
+            node -> left = NULL;
+        } i++;
 
-            if(i < n && arr[i] != -1){
-                struct Node *node = createNode(arr[i]);
-                curr -> right = node;
-                push(node);
-            } else {
-                curr -> right = NULL;
-            }
+        if(i < n && arr[i] != -1){ // For right child
+            Node *right = create(arr[i]);
+            node -> right = right;
+            queue[++rear] = right;
+        } else {
+            node -> right = NULL;
+        } i++;
 
-            i++;
-        }
     }
-
     return root;
 }
 
-bool pre_order_search(struct Node *root, int k){
+void in_order(Node *root){
+    if(root == NULL) return;
 
-    if(root != NULL){
-        if(root -> key == k)
-            return true;
-        return pre_order_search(root -> left, k) || pre_order_search(root -> right, k);
-    } else {
-        return false;
-    }
+    in_order(root -> left);
+    printf("%d ", root -> key);
+    in_order(root -> right);
 }
 
-struct Node *LeastCommonAnc(struct Node *root, int A, int B){
+Node *lca(Node *root, int A, int B){
+    if(root == NULL) return root;
+    if(root -> key == A || root -> key == B)
+        return root;
+    Node *left = lca(root -> left, A, B);
+    Node *right = lca(root -> right, A, B);
 
-    initialize(cap, 1);
-    push(root);
+    if(left != NULL && right != NULL)
+        return root;
 
-    struct Node *node = NULL;
-    while(!empty()){
-        struct Node *curr = front();
-        pop();
-
-        if(pre_order_search(curr, A) && pre_order_search(curr, B))
-            node = curr;
-    
-        if(curr -> left != NULL)
-            push(curr -> left);
-        if(curr -> right != NULL)
-            push(curr -> right);
-    }
-    return node;
+    return left != NULL ? left : right;
 }
 
 int main(){
@@ -138,8 +77,10 @@ int main(){
     for(int i = 0; i < n; i++)
         scanf("%d", &arr[i]);
 
-    struct Node *tree = tree_creation(arr, n);
-    struct Node *LCA = LeastCommonAnc(tree, A, B);
+    Node *root = construct(arr, n);
 
-    printf("%d ", LCA -> key);
+    // in_order(root);
+
+    Node *node = lca(root, A, B);
+    printf("%d ", node -> key);
 }
