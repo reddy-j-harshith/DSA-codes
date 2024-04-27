@@ -1,24 +1,30 @@
-#include <stdio.h>
+#include<stdio.h>
+#include<limits.h>
+
+int min(int a, int b){ return a < b ? a : b; }
+int max(int a, int b){ return a > b ? a : b; }
 
 int main(){
-    int i,j,n;
-    
-    scanf("%d",&n);
-    
+    int n;
+    scanf("%d", &n);
+
     int arr[n];
-    for(i=0;i<n;i++){
-        scanf("%d",&arr[i]);
-    }
-    
-    int max=0;
-    for(i=0;i<n-1;i++){
-        for(j=i+1;j<n;j++){
-            if((arr[j]-arr[i])>max){
-                max=arr[j]-arr[i];
-            }
+    for(int i = 0; i < n; i++)
+        scanf("%d", &arr[i]);
+
+    int small = INT_MAX;
+    int large = INT_MIN;
+    int dif = 0;
+
+    for(int i = 0; i < n; i++){
+        if(small > arr[i]){
+            small = arr[i];
+            large = arr[i];
+        } else {
+            large = max(large, arr[i]);
         }
+        dif = max(dif, large - small);
     }
-    printf("%d",max);
-    
-    return 0;
+
+    printf("%d ", dif);
 }
