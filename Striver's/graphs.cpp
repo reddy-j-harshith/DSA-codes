@@ -37,7 +37,6 @@ void dfs(int node, vector<vector<int>> &adj, vector<bool> &visited, vector<int> 
             dfs(itr, adj, visited, vec);
         }
     }
-
 }
 
 vector<int> dfsOfGraph(vector<vector<int>> &adj, int n){
@@ -146,11 +145,8 @@ int rotten_oranges(vector<vector<int>> grid){
                 count++;
                 grid[R][C] = 2;
             }
-
         }
-
-   }
-
+    }
     if(count < cntFresh) return -1;
     
     return time;
@@ -204,7 +200,6 @@ void dfs_floodfill(vector<vector<int>> &image, int r, int c, int color, int newC
                 image[R][C] = newColor;
                 dfs_floodfill(image, R, C, color, newColor);
             }
-
         }
     }
 }
@@ -247,6 +242,7 @@ bool cycle_detection_bfs(vector<vector<int>> adj){
     return false;
 }
 
+// You maintain / carry the parent of the current node with it to examine if a node was already visited.
 bool dfs_cycle(pair<int, int> node, vector<vector<int>> &adj, int vis[]){
     vis[node.first] = 1;
 
@@ -275,42 +271,41 @@ bool cycle_detection_dfs(vector<vector<int>> &adj){
     return false;
 }
 
-    vector<vector<int>> updateMatrix(vector<vector<int>>& mat) {
-        int m = mat.size();
-        int n = mat[0].size();
+vector<vector<int>> updateMatrix(vector<vector<int>>& mat) {
+    int m = mat.size();
+    int n = mat[0].size();
 
-        queue<pair<int, int>> q;
+    queue<pair<int, int>> q;
 
-        int row[] = {-1, 0, 1, 0};
-        int col[] = {0, 1, 0, -1};
+    int row[] = {-1, 0, 1, 0};
+    int col[] = {0, 1, 0, -1};
 
-        vector<vector<int>> ret(n, vector<int> (n, 0));
+    vector<vector<int>> ret(n, vector<int> (n, 0));
 
-        for(int i = 0; i < m; i++){
-            for(int j = 0; j < n; j++){
-                q.push({i, j});
+    for(int i = 0; i < m; i++){
+        for(int j = 0; j < n; j++){
+            q.push({i, j});
 
-                int visited[m][n] = {0};
-                int dis = 0;
-                while(!q.empty()){
-                    int r = q.front().first, c = q.front().second;
-                    visited[r][c] = 1;
-                    if(mat[r][c] == 0) ret[i][j] = dis;
+            int visited[m][n] = {0};
+            int dis = 0;
+            while(!q.empty()){
+                int r = q.front().first, c = q.front().second;
+                visited[r][c] = 1;
+                if(mat[r][c] == 0) ret[i][j] = dis;
 
-                    for(int i = 0; i < 4; i++){
-                        int R = r + row[i];
-                        int C = c + col[i];
-                        if(r >= 0 && c >= 0 && r < m && c < n && !visited[R][C]){
-                            q.push({R, C});
-                            dis++;
-                        }
+                for(int i = 0; i < 4; i++){
+                    int R = r + row[i];
+                    int C = c + col[i];
+                    if(r >= 0 && c >= 0 && r < m && c < n && !visited[R][C]){
+                        q.push({R, C});
+                        dis++;
                     }
                 }
-
             }
         }
-        return ret;
     }
+    return ret;
+}
 
 
 bool dfs_path_naive(int node, vector<int> adj[], int visited[], int path[]){
@@ -354,7 +349,6 @@ bool dfs_path(int node, vector<int> adj[], int visited[]){
             return true;
         }
     }
-
     visited[node] = 1;
     return false;
 }
@@ -394,7 +388,6 @@ bool bipartite_bfs(int v, vector<vector<int>> adj){
                 }
             }
         }
-    
     }
     return true;
 }
@@ -426,63 +419,265 @@ bool isBipartite(int v, vector<vector<int>> adj){
     return true;
 }
 
-int main(){
-    int n, m;
-    cin >> n >> m;
+int number_of_islands(vector<int> adj[], int n){
 
-    // int n;
-    // pair<int, int> point;
-    // int color;
-    // cin >> n >> point.second >> point.first >> color;
+    int m = adj[0].size();
+    int count = 0;
 
-    // ADJACENCY MATRIX TYPE OF STORING
+    int row[] = {0, 1, 0, -1, 1, -1, 1, -1};
+    int col[] = {1, 0, -1, 0, 1, -1, -1, 1};
 
-    int adj[n + 1][n + 1];
+    for(int i = 0; i < n; i++){
+        for(int j = 0; j < m; j++){
+            if(adj[i][j] == 1){
 
-    // ADJACENCY LIST
-    vector<vector<int>> vec(n + 1);
+                count++;
 
-    vector<int> vec1[n + 1];
-    for(int i = 0; i < m; i++){
-        int u, v;
-        cin >> u >> v;
+                adj[i][j] = 2;
+                stack<pair<int, int>> s;
+                s.push({i, j});
 
-        // Matrix
-        adj[u][v] = 1; // Edge between u to v.
-        adj[v][u] = 1; // Edge between v to u.
+                while(!s.empty()){
 
-        // List
-        vec[u].push_back(v); // Edge between u to v.
-        vec[v].push_back(u); // Edge between v to u.
+                    int r = s.top().first;
+                    int c = s.top().second;
+                    s.pop();
 
-        // For Directed Graph
-        vec1[u].push_back(v); // Only one edge is necessary and the other is not as this is a directed graph.
+                    for(int k = 0; k < 8; k++){
+                        int R = r + row[k];
+                        int C = c + col[k];
+                        if(R >= 0 && R < n && C >= 0 && C < m && adj[R][C] == 1){
+                            adj[R][C] = 2;
+                            s.push({R, C});
+                        }
+                    }
+
+                }
+
+            }
+        }
     }
 
-    // for(int i = 0; i < n; i++){
-    //     for(int j = 0; j < n; j++){
-    //         int x;
-    //         cin >> x;
-    //         vec[i].push_back(x);
-    //     }
-    // }
+    return count;
+}
 
-    // vector<int> bfs_vec = dfsOfGraph(vec, n);
+void dfs_enclave(pair<int, int> node, vector<int> adj[], int n, int &count, bool &flag){
 
-    // for(auto itr : bfs_vec)
-    //     cout << itr << " ";
 
-    // flood_fill(vec, point, color);
+    int r = node.first;
+    int c = node.second;
 
-    // for(int i = 0; i < n; i++){
-    //     for(int j = 0; j < n; j++){
-    //         cout << vec[i][j] << " ";
-    //     }
-    //     cout << endl;
-    // }
+    adj[r][c] = 0;
+    if(r > 0 && r < n - 1 && c > 0 && c < adj[0].size() - 1){
+        count++;
+    } else {
+        flag = true;
+    }
 
-    cout << isBipartite(n, vec) << endl;
+    int row[] = {0, 1, 0, -1};
+    int col[] = {1, 0, -1, 0};
+    for(int i = 0; i < 4; i++){
+        int R = r + row[i];
+        int C = c + col[i];
+        if(R >= 0 && R < n && C >= 0 && C < adj[0].size() && adj[R][C] == 1){
+            dfs_enclave({R, C}, adj, n, count, flag);
+        }
+    }
+}
 
+int no_enclaves(vector<int> adj[], int n){
+
+    int m = adj[0].size(), count = 0;
+    for(int i = 0; i < n; i++){
+        for(int j = 0; j < m; j++){
+            if(adj[i][j] == 1){
+                int tempCount = 0;
+                bool flag = false;
+                dfs_enclave({i, j}, adj, n ,tempCount, flag);
+                
+                if(!flag)
+                    count += tempCount;
+            }
+        }
+    }
+    return count;
+}
+
+
+void surrounded_dfs(int r, int c, vector<vector<char>> &mat, vector<vector<int>> &vis){
+    vis[r][c] = 1;
+    int n = mat.size();
+    int m = mat[0].size();
+
+    int row[] = {0, 1, 0, -1};
+    int col[] = {-1, 0, 1, 0};
+    for(int i = 0; i < 4; i++){
+        int R = r + row[i];
+        int C = c + col[i];
+        if(R >= 0 && R < n && C >= 0 && C < m && mat[R][C] == 'O' && vis[R][C] == 0)
+            surrounded_dfs(R, C, mat, vis);
+    }
+}
+
+void surrounded(vector<vector<char>>& mat) {
+    int n = mat.size();
+    int m = mat[0].size();
+    vector<vector<int>> vis(n, vector<int> (m, 0));
+
+    for(int i = 0; i < n; i++){
+        if(mat[i][0] == 'O' && vis[i][0] == 0) surrounded_dfs(i, 0, mat, vis);
+        if(mat[i][m - 1] == 'O' && vis[i][m - 1] == 0) surrounded_dfs(i, m - 1, mat, vis);
+    }
+
+    for(int i = 0; i < m; i++){
+        if(mat[0][i] == 'O' && vis[0][i] == 0) surrounded_dfs(0, i, mat, vis);
+        if(mat[n - 1][i] == 'O' && vis[n - 1][i] == 0) surrounded_dfs(n - 1, i, mat, vis);
+    }
+
+    for(int i = 0; i < n; i++){
+        for(int j = 0; j < m; j++){
+            if(vis[i][j] == 0)
+                mat[i][j] = 'X';
+        }
+    }
+}
+
+int bfs_nearest_naive(int r, int c, vector<vector<int>> &adj){
+
+    int n = adj.size(), m = adj[0].size();
+    vector<vector<int>> vis(n, vector<int> (m, 0));
+    queue<pair<pair<int, int>, int>> q;
+
+    q.push({{r, c}, 0});
+    vis[r][c] = 1;
+
+    int row[] = {0, 1, 0, -1};
+    int col[] = {1, 0, -1, 0};
+
+    while(!q.empty()){
+
+        int r = q.front().first.first;
+        int c = q.front().first.second;
+        int d = q.front().second;
+        q.pop();
+
+        if(adj[r][c] == 0) return d;
+
+        for(int i = 0; i < 4; i++){
+            int R = r + row[i];
+            int C = c + col[i];
+            if(R >= 0 && R < n && C >= 0 && C < m && !vis[R][C]){
+                vis[R][C] = 1;
+                q.push({{R, C}, d + 1});
+            }
+        }
+    }
+    return -1;
+}
+
+vector<vector<int>> nearest_matrix_naive(vector<vector<int>> &adj){
+
+    int n = adj.size(), m = adj[0].size();
+    vector<vector<int>> dis(n);
+    for(int i = 0; i < n; i++){
+        for(int j = 0; j < m; j++){
+            int result = bfs_nearest_naive(i, j, adj);
+            dis[i].push_back(result);
+        }
+    }
+    return dis;
+}
+
+
+vector<vector<int>> nearest_matrix(vector<vector<int>> &grid){
+    int n = grid.size(), m = grid[0].size();
+    vector<vector<int>> vis(n, vector<int>(m, 0));
+    vector<vector<int>> dis(n, vector<int>(m, 0));
+    queue<pair<pair<int, int>, int>> q;
+    for(int i = 0; i < n; i++){
+        for(int j = 0; j < m; j++){
+            if(grid[i][j] == 0){
+                q.push({{i, j}, 0});
+                vis[i][j] = 1;
+            }
+        }
+    }
+
+    int row[] = {0, 1, 0, -1};
+    int col[] = {1, 0, -1, 0};
+
+    while(!q.empty()){
+        int r = q.front().first.first;
+        int c = q.front().first.second;
+        int d = q.front().second;
+        q.pop();
+
+        dis[r][c] = d;
+        for(int i = 0; i < 4; i++){
+            int R = r + row[i];
+            int C = c + col[i];
+            if(R >= 0 && R < n && C >= 0 && C < m && !vis[R][C]){
+                vis[R][C] = 1;
+                q.push({{R, C}, d + 1});
+            }
+        }
+    }
+    return dis;
+}
+
+int word_ladder(string start, string end, vector<string> &wordList){
+
+    unordered_set<string> s(wordList.begin(), wordList.end());
+
+    s.erase(start);
+
+    queue<pair<string, int>> q;
+    q.push({start, 0});
+
+    while(!q.empty()){
+
+        auto word = q.front().first;
+        int dis = q.front().second;
+        q.pop();
+        if(word == end) return dis;
+
+        for(int i = 0; i < word.length(); i++){
+
+            string original = word;
+            for(char ch = 'a'; ch < 'z'; ch++){
+                word[i] = ch;
+                if(s.find(word) != s.end()){
+                    s.erase(word);
+                    q.push({word, dis + 1});
+                }
+            }
+        }
+    }
     return 0;
 }
-       
+
+pair<int*, bool> bellman_ford(vector<vector<pair<int, int>>> &adj, int n){
+    int *dis = new int[n + 1];
+    for(int i = 2; i <= n; i++){
+        dis[i] = INT_MAX;
+    }
+
+    dis[1] = 0;
+    for(int i = 1; i < n; i++){
+
+        for(int u = 1; u <= n; u++){
+            for(auto v : adj[u]){
+                if(dis[u] != INT_MAX && dis[v.first] > dis[u] + v.second)
+                    dis[v.first] = dis[u] + v.second;
+            }
+        }
+    }
+
+    bool flag = true;
+    for(int i = 2; i <= n; i++)
+        if(dis[i] != INT_MAX)
+            flag = false;
+    
+    return {dis, flag};
+}
+
