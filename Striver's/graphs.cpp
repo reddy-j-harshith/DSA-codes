@@ -2,6 +2,39 @@
 
 using namespace std;
 
+class DSU{
+
+    public:
+    vector<int> id, sz;
+    DSU(int n){
+        for(int i = 0; i < n; i++){
+            id.push_back(i);
+            sz.push_back(1);
+        }
+    }
+
+    int findParent(int i){
+        if(id[i] == i) return i;
+        return id[i] = findParent(id[i]);
+    }
+
+    void unionBySize(int x, int y){
+
+        int i = findParent(x);
+        int j = findParent(y);
+        if(i != j){
+            if(sz[i] > sz[j]){
+                id[j] = i;
+                sz[i] += sz[j];
+            } else {
+                id[i] = j;
+                sz[j] += sz[i];
+            }
+        }
+    }
+};
+
+
 vector<int> bfs(vector<vector<int>> &adj, int n){
 
     vector<int> visited(n + 1, false);
@@ -625,59 +658,604 @@ vector<vector<int>> nearest_matrix(vector<vector<int>> &grid){
     return dis;
 }
 
-int word_ladder(string start, string end, vector<string> &wordList){
-
-    unordered_set<string> s(wordList.begin(), wordList.end());
-
-    s.erase(start);
-
+int word_ladder(string &start_word, string &end_word, vector<string> &word_list){
+    unordered_set<string> st(word_list.begin(), word_list.end());
+    st.erase(start_word);
     queue<pair<string, int>> q;
-    q.push({start, 0});
+    q.push({start_word, 1});
 
     while(!q.empty()){
-
-        auto word = q.front().first;
-        int dis = q.front().second;
+        int count = q.size();
+        string curr = q.front().first;
+        int step = q.front().second;
         q.pop();
-        if(word == end) return dis;
 
-        for(int i = 0; i < word.length(); i++){
+        if(curr == end_word){
+            return step;
+        }
 
-            string original = word;
-            for(char ch = 'a'; ch < 'z'; ch++){
-                word[i] = ch;
-                if(s.find(word) != s.end()){
-                    s.erase(word);
-                    q.push({word, dis + 1});
+        for(int i = 0; i < curr.length(); i++){
+            string original = curr;
+            for(char j = 'a'; j <= 'z'; j++){
+                curr[i] = j;
+                if(st.find(curr) != st.end()){
+                    q.push({curr, step + 1});
+                    st.erase(curr);
                 }
             }
+            curr = original; // We are doing this because we only require only one change from the original word and without which, those changes will last forever.
         }
+    
     }
     return 0;
 }
 
-pair<int*, bool> bellman_ford(vector<vector<pair<int, int>>> &adj, int n){
-    int *dis = new int[n + 1];
-    for(int i = 2; i <= n; i++){
-        dis[i] = INT_MAX;
+class Word_Ladder_II {
+public:
+    bool isConnected(string s,string t){
+        int c=0;
+        for(int i=0;i<s.length();i++)
+            c+=(s[i]!=t[i]);
+        return c==1;
     }
 
-    dis[1] = 0;
-    for(int i = 1; i < n; i++){
+    vector<vector<string>> findLadders(string beginWord, string endWord, vector<string>& wordList) {
+        vector<vector<string>> ans;        
+        vector<vector<string>> nodes;   
+        unordered_set<string> dict(wordList.begin(),wordList.end());
+        
+        if (!dict.count(endWord)) return ans;
+        dict.erase(beginWord);
+        
+        
+        bool reached = false;
+        nodes.push_back({beginWord});
+        
+        while (dict.size() && !reached) {                        
+            vector<string> last = nodes.back();
+            vector<string> curr;
+                        
+            for (int i = 0; i < last.size() && !reached; i++) {
+                unordered_set<string> visited;
+                string from = last[i];                                
+                // check all nodes that connect
+                // to the nodes of the previous level                
+                for (auto& to : dict) {                    
+                    if (visited.count(to)) continue;
+                    if (!isConnected(from, to)) continue;                                        
+                    // if one of them is "endWord" then we can stop 
+                    // because this level is the shortest distance from begin
+                    if (to == endWord) {                        
+                        reached = true; 
+                        break;
+                    }
+                    
+                    // otherwise,
+                    // add nodes for the current level
+                    curr.push_back(to);   
+                    visited.insert(to);                    
+                }   
+                // delete the visited to prevent forming cycles            
+                for (auto& visited : visited) {                
+                    dict.erase(visited);
+                }
+            }
+            
+            // found endWord this level
+            if (reached) break;
+            
+            // can not add any new nodes to our level
+            if (!curr.size()) break;
+            
+            // otherwise, record all nodes for the current level
+            nodes.push_back(curr);            
+        }
+        
+        // try but not find
+        if (reached == false) return ans;
+        
+        // move backward
+        ans.push_back({endWord});          
+        for (int level = nodes.size() - 1; level >= 0; level--) {                        
+            int alen = ans.size();
+            while (alen) {
+                vector<string> path = ans.back();
+                ans.pop_back();
+                string from = path.front();                
+                for (string &to : nodes[level]) {                    
+                    if (!isConnected(from, to)) continue;
+                                        
+                    vector<string> newpath = path;
+                    newpath.insert(newpath.begin(), to);
+                    ans.insert(ans.begin(), newpath);
+                }    
+                alen--;
+            }             
+        }
+        return ans;
+    }
+};
 
-        for(int u = 1; u <= n; u++){
-            for(auto v : adj[u]){
-                if(dis[u] != INT_MAX && dis[v.first] > dis[u] + v.second)
-                    dis[v.first] = dis[u] + v.second;
+class Bellman_Ford {
+  public:
+    /*  Function to implement Bellman Ford
+    *   edges: vector of vectors which represents the graph
+    *   S: source vertex to start traversing graph with
+    *   V: number of vertices
+    */
+    vector<int> bellman_ford(int V, vector<vector<int>>& edges, int S) {
+        vector<int> distance(V, 1e8);
+        distance[S] = 0;
+        for(int i = 0; i < V; i++){
+            for(auto edge : edges){
+                int u = edge[0];
+                int v = edge[1];
+                int w = edge[2];
+                
+                if(distance[u] != 1e8 && distance[v] > w + distance[u]){
+                    distance[v] = w + distance[u];
+                    if(i == V - 1)
+                        return {-1};
+                }
+            }
+            
+        }
+        
+        return distance;
+    }
+};
+
+// Shortest distance from source to all other vertices in a DAG.
+vector<int> shortestPath(int N,int M, vector<vector<int>>& edges){
+    
+    vector<pair<int, int>> graph[N];
+    for(auto itr : edges){
+        graph[itr[0]].push_back({itr[1], itr[2]});
+    }
+    
+    
+    queue<pair<int, int>> q;
+    q.push({0, 0});
+    
+    vector<int> shortest(N, -1);
+    shortest[0] = 0;
+    
+    while(!q.empty()){
+        int front = q.front().first;
+        int dist = q.front().second;
+        q.pop();
+        for(auto itr : graph[front]){
+            
+            
+            if(shortest[itr.first] == -1 || shortest[itr.first] >= dist + itr.second){
+                q.push({itr.first, dist + itr.second});
+                shortest[itr.first] = dist + itr.second;
+            }
+        }
+        
+    }
+    return shortest;
+}
+
+// Finding the shortest path from the source 0 using dfs and topological sort and the concept of relaxation.
+class shortest_path_DAG {
+    private:
+    void dfs(stack<int> &srt, int node, vector<int> &vis, int N, vector<pair<int, int>> graph[]){
+        vis[node] = 1;
+        
+        for(auto itr : graph[node]){
+            if(!vis[itr.first]){
+                dfs(srt, itr.first, vis, N, graph);
+                srt.push(itr.first);
+            }
+        }
+    }
+    
+    stack<int> topo_sort(int N, vector<pair<int, int>> graph[]){
+        stack<int> srt;
+        vector<int> vis(N, 0);
+        for(int i = 0; i < N; i++){
+            if(!vis[i]){
+                dfs(srt, i, vis, N, graph);
+                srt.push(i);
+            }
+        }
+        
+        return srt;
+    }
+    
+    public:
+    vector<int> shortestPath(int N,int M, vector<vector<int>>& edges){
+     
+        vector<pair<int, int>> graph[N];
+        for(auto itr : edges){
+            graph[itr[0]].push_back({itr[1], itr[2]});
+        }
+        
+        stack<int> srt = topo_sort(N, graph);
+        
+        
+        
+        vector<int> dis(N, 1e9);
+        
+        dis[0] = 0;
+        
+        while(!srt.empty()){
+            
+            int node = srt.top();
+            int dist = dis[node];
+            srt.pop();
+            
+            if(dis[node] == 1e9){
+                dis[node] = -1;
+                continue;
+            }
+            
+            for(auto itr : graph[node]){
+                if(dis[itr.first] > dist + itr.second){
+                    dis[itr.first] = dist + itr.second;
+                }
+            }
+        }
+        
+
+        return dis;
+    }
+};
+
+// Prims method of finding the minimum spanning tree.
+
+class Prims
+{
+	public:
+	//Function to find sum of weights of edges of the Minimum Spanning Tree.
+    int spanningTree(int V, vector<vector<int>> adj[])
+    {
+        vector<int> vis(V, 0);
+        priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> pq;
+        // We can use the pair<int, pair<int, int>>> to store the weight, the node and its parent to construct the MST.
+
+        int sum = 0;
+        // {weight, node}
+        pq.push({0, 0});
+        
+        while(!pq.empty()){
+            
+            int w = pq.top().first;
+            int u = pq.top().second;
+            
+            pq.pop();
+            
+            // If the node is already part of the MST.
+            if(vis[u]) continue;
+            
+            sum += w;
+            vis[u] = 1;
+            
+            for(auto itr : adj[u]){
+                int v = itr[0];
+                int e = itr[1];
+            
+                // If the node is not part of the MST. You need to add it.
+                if(!vis[v])
+                    pq.push({e, v});
+            }
+            
+        }
+        return sum;
+    }
+};
+
+// Prims - extremely efficient method of finding the minimum spanning tree.
+class Solution {
+public:
+    int minCostConnectPoints(vector<vector<int>>& points) {
+        int n = points.size();
+        vector<pair<int, int>> distances = {{0, 0}};
+        for (int i = 1; i < n; ++i) {
+            distances.push_back({INT_MAX, i});
+        }
+        int result = 0;
+
+        while (!distances.empty()) {
+            auto closest = min_element(distances.begin(), distances.end());
+            result += closest->first;
+            int x = points[closest->second][0];
+            int y = points[closest->second][1];
+
+            *closest = distances.back();
+            distances.pop_back();
+
+            for (auto& dist : distances) {
+                int x2 = points[dist.second][0];
+                int y2 = points[dist.second][1];
+                dist.first = min(dist.first, abs(x - x2) + abs(y - y2));
+            }
+        }
+        return result;
+    }
+};
+
+
+class Bellman {
+  public:
+    /*  Function to implement Bellman Ford
+    *   edges: vector of vectors which represents the graph
+    *   S: source vertex to start traversing graph with
+    *   V: number of vertices
+    */
+    vector<int> bellman_ford(int V, vector<vector<int>>& edges, int S) {
+        vector<int> distance(V, 1e8);
+        distance[S] = 0;
+        for(int i = 0; i < V; i++){
+            for(auto edge : edges){
+                int u = edge[0];
+                int v = edge[1];
+                int w = edge[2];
+                
+                if(distance[u] != 1e8 && distance[v] > w + distance[u]){
+                    distance[v] = w + distance[u];
+                    if(i == V - 1)
+                        return {-1};
+                }
+            }
+            
+        }
+        
+        return distance;
+    }
+};
+
+class MinimumMultiplications {
+  public:
+    int minimumMultiplications(vector<int>& arr, int start, int end) {
+        if(start == end) return 0;
+        
+        queue<pair<int, int>> q;
+        vector<int> vis(100000, 0);
+        
+        q.push({start, 0});
+        vis[start] = 1;
+        
+        while(!q.empty()){
+            
+            int node = q.front().first;
+            int step = q.front().second;
+            q.pop();
+            
+            for(auto itr : arr){
+                int next = (node * itr) % 100000;
+            
+                if(node == end) return step;
+                
+                if(!vis[next]){
+                    vis[next] = 1;
+                    q.push({next, step + 1});
+                }
+            }
+            
+        }
+        
+        return -1;
+    }
+};
+
+// For multt-source shortest path
+class FloydWarshall{
+    vector<vector<int>> findTheCity(int n, vector<vector<int>>& edges, int dis) {
+        vector<vector<int>> mat(n, vector<int> (n, 1e9));
+
+        for(int i = 0; i < n; i++){
+                mat[i][i] = 0;
+        }
+
+        for(auto itr : edges){
+            mat[itr[0]][itr[1]] = itr[2];
+            mat[itr[1]][itr[0]] = itr[2];
+        }
+
+        for(int vis = 0; vis < n; vis++){
+            for(int i = 0; i < n; i++){
+                for(int j = 0; j < n; j++){
+                    mat[i][j] = min(mat[i][j], mat[i][vis] + mat[vis][j]);
+                }
+            }
+        }
+
+        return mat;
+    }
+};
+
+class CityWithLeastNeighborsWithinThreshold {
+public:
+    int findTheCity(int n, vector<vector<int>>& edges, int dis) {
+        vector<vector<int>> mat(n, vector<int> (n, 1e9));
+
+        for(int i = 0; i < n; i++){
+                mat[i][i] = 0;
+        }
+
+        for(auto itr : edges){
+            mat[itr[0]][itr[1]] = itr[2];
+            mat[itr[1]][itr[0]] = itr[2];
+        }
+
+        for(int vis = 0; vis < n; vis++){
+            for(int i = 0; i < n; i++){
+                for(int j = 0; j < n; j++){
+                    mat[i][j] = min(mat[i][j], mat[i][vis] + mat[vis][j]);
+                }
+            }
+        }
+
+        int result = 0, mini = 1e9;
+        for(int i = 0; i < n; i++){
+            int neighbors = 0;
+            for(int j = 0; j < n; j++){
+                if(mat[i][j] <= dis)
+                    neighbors++;
+            }
+            result = (neighbors <= mini ? i : result);
+            mini = min(mini, neighbors);
+
+        }
+
+        return result;
+    }
+};
+
+class CheckForPossibleBipartition {
+public:
+    bool possibleBipartition(int n, vector<vector<int>>& dislikes) {
+        DSU dsu(2 * n + 1);
+
+        int cnt = n;
+
+        for(auto itr : dislikes){
+            if(dsu.findParent(itr[0]) == dsu.findParent(itr[1]))
+                return false;
+            dsu.unionBySize(itr[0], itr[1] + n);
+            dsu.unionBySize(itr[1], itr[0] + n);
+        }
+        return true;
+    }
+};
+
+class KosaRaju {
+
+    void dfs_sort(int node, vector<vector<int>> &adj, vector<int> &vis, stack<int> &s){
+
+        vis[node] = 1;
+
+        for(auto itr : adj[node]){
+            if(!vis[itr]){
+                dfs_sort(itr, adj, vis, s);
+            }
+        }
+        s.push(node);
+    }
+
+    void dfs(int node, vector<vector<int>> &adj, vector<int> &vis, vector<int> &components){
+        vis[node] = 1;
+        components.push_back(node);
+        for(auto itr : adj[node]){
+            if(!vis[itr]){
+                dfs(itr, adj, vis, components);
             }
         }
     }
 
-    bool flag = true;
-    for(int i = 2; i <= n; i++)
-        if(dis[i] != INT_MAX)
-            flag = false;
-    
-    return {dis, flag};
-}
+    public:
+    vector<vector<int>> kosaRaju(int V, vector<vector<int>> &adj){
 
+        stack<int> s; vector<int> vis(V, 0);
+        for(int i = 0; i < V; i++){
+            if(!vis[i]){
+                dfs_sort(i, adj, vis, s);
+            }
+        }
+
+        vector<vector<int>> rev(V);
+
+        for(int i = 0; i < V; i++){
+            vis[i] = 0;
+            for(auto itr : adj[i]){
+                rev[itr].push_back(i);
+            }
+        }
+
+        vector<vector<int>> scc;
+
+        while(!s.empty()){
+            int node = s.top();
+            s.pop();
+
+            if(!vis[node]){
+                vector<int> components;
+                dfs(node, rev, vis, components);
+                scc.push_back(components);
+            }
+        }
+        return scc;
+    }
+
+};
+
+class CourseScheduleIV {
+private:
+    void dfs(int node, vector<vector<int>> &adj, vector<int> &vis, vector<unordered_set<int>> &req){
+        vis[node] = 1;
+        for(auto itr : adj[node]){
+            if(!vis[itr]){
+                dfs(itr, adj, vis, req);
+            }
+            // Addding the nearby node into the requirments
+            req[node].insert(itr);
+
+            // Adding the nodes which are further down the line.
+            req[node].insert(req[itr].begin(), req[itr].end());
+        }
+    }
+
+
+public:
+    vector<bool> checkIfPrerequisite(int n, vector<vector<int>>& vec, vector<vector<int>>& queries) {
+        ios::sync_with_stdio(false);
+        cin.tie(nullptr);
+        cout.tie(nullptr);
+        
+        vector<vector<int>> adj(n);
+        for(auto itr : vec){
+            adj[itr[0]].push_back(itr[1]);
+        }
+
+        vector<int> vis(n ,0);
+
+        vector<unordered_set<int>> req(n);
+
+        for(int i = 0; i < n; i++){
+            if(!vis[i]){
+                dfs(i, adj, vis, req);
+            }
+        }
+
+        vector<bool> ans;
+        for(auto itr : queries)
+            ans.push_back(req[itr[0]].count(itr[1]) > 0);
+
+        return ans;
+    }
+};
+
+int main(){
+    int n, m;
+    cin >> n >> m;
+
+    long long *arr = new long long[n];
+
+    // ADJACENCY MATRIX TYPE OF STORING
+    int adj[n + 1][n + 1];
+
+    // ADJACENCY LIST
+    vector<vector<int>> vec(n + 1);
+
+    vector<vector<pair<int, int>>> vec1(n + 1);
+    for(int i = 0; i < m; i++){
+        int u, v, weight;
+        cin >> u >> v >> weight;
+
+        // Matrix
+        adj[u][v] = 1; // Edge between u to v.
+        adj[v][u] = 1; // Edge between v to u.
+
+        // List
+        vec[u].push_back(v); // Edge between u to v.
+        vec[v].push_back(u); // Edge between v to u.
+
+        // For Weighted-Directed Graph
+        vec1[u].push_back({v, weight}); // Only one edge is necessary and the other is not as this is a directed graph.
+    }
+
+
+    return 0;
+}
